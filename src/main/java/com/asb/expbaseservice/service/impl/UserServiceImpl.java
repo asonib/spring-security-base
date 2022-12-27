@@ -9,6 +9,7 @@ import com.asb.expbaseservice.repository.AddressRepository;
 import com.asb.expbaseservice.repository.UserRepository;
 import com.asb.expbaseservice.service.IUserService;
 import com.asb.expbaseservice.utils.KafkaProducerUtil;
+import com.asb.expbaseservice.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,9 @@ public class UserServiceImpl implements IUserService {
     @Autowired
     KafkaProducerUtil kafkaProducerUtil;
 
+    @Autowired
+    private Utils utils;
+
     private static final String SERVICE_NAME = "UserServiceImpl - exp-base-service";
 
     @Override
@@ -49,49 +53,58 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public UserDto getUserById(Long userId) throws ResourceNotFoundException {
+    public UserDto getUserById(String userId) throws ResourceNotFoundException {
         kafkaProducerUtil.sendStringMessage("INFO :: "+ SERVICE_NAME +" :: getUserByID for Id {"+userId+"} API called on "+new Date());
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Users not found for this id :: " + userId));
-        UserDto userDto = new UserDto();
-        BeanUtils.copyProperties(user, userDto);
-        return userDto;
+        Users user = userRepository.findByUserId(userId);
+        if(user != null){
+            UserDto userDto = new UserDto();
+            BeanUtils.copyProperties(user, userDto);
+            return userDto;
+        }else{
+            throw new ResourceNotFoundException("Users not found for this id :: " + userId);
+        }
     }
 
     @Override
-    public UserDto updateUser(Long userId, UserDto userDetails) throws ResourceNotFoundException {
+    public UserDto updateUser(String userId, UserDto userDetails) throws ResourceNotFoundException {
         kafkaProducerUtil.sendStringMessage("INFO :: "+ SERVICE_NAME +" :: updateUser for Id {"+userId+"} API called on "+new Date());
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Users not found for this id :: " + userId));
+        Users user = userRepository.findByUserId(userId);
+        if(user != null){
+            if(!Objects.isNull(userDetails) && userDetails.getEmailId() != null){
+                user.setEmailId(userDetails.getEmailId());
+            }
+            if(!Objects.isNull(userDetails) && userDetails.getFirstName() != null){
+                user.setFirstName(userDetails.getFirstName());
+            }
+            if(!Objects.isNull(userDetails) && userDetails.getLastName() != null){
+                user.setLastName(userDetails.getLastName());
+            }
+            if(!Objects.isNull(userDetails.getAddress())){
+                Address address = userDetails.getAddress();
+                address.setAddressIdentification(utils.generateUserId(10));
+                user.setAddress(address);
+            }
 
-        if(!Objects.isNull(userDetails) && userDetails.getEmailId() != null){
-            user.setEmailId(userDetails.getEmailId());
+            final Users updatedUser = userRepository.save(user);
+            UserDto userDto = new UserDto();
+            BeanUtils.copyProperties(updatedUser, userDto);
+            return userDto;
+        }else{
+            throw new ResourceNotFoundException("Users not found for this id :: " + userId);
         }
-        if(!Objects.isNull(userDetails) && userDetails.getFirstName() != null){
-            user.setFirstName(userDetails.getFirstName());
-        }
-        if(!Objects.isNull(userDetails) && userDetails.getLastName() != null){
-            user.setLastName(userDetails.getLastName());
-        }
-        if(!Objects.isNull(userDetails.getAddress())){
-            user.setAddress(userDetails.getAddress());
-        }
-
-        final Users updatedUser = userRepository.save(user);
-        UserDto userDto = new UserDto();
-        BeanUtils.copyProperties(updatedUser, userDto);
-        return userDto;
     }
 
     @Override
-    public Map<String, Boolean> deleteUser(Long userId) throws ResourceNotFoundException {
+    public Map<String, Boolean> deleteUser(String userId) throws ResourceNotFoundException {
         kafkaProducerUtil.sendStringMessage("INFO :: "+ SERVICE_NAME + " :: deleteUser for Id {"+userId+"} API called on "+new Date());
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Users not found for this id :: " + userId));
-
-        userRepository.delete(user);
-        Map<String, Boolean> response = new HashMap<>();
-        response.put("deleted", Boolean.TRUE);
-        return response;
+        Users user = userRepository.findByUserId(userId);
+        if(user != null){
+            userRepository.delete(user);
+            Map<String, Boolean> response = new HashMap<>();
+            response.put("deleted", Boolean.TRUE);
+            return response;
+        }else{
+            throw new ResourceNotFoundException("Users not found for this id :: " + userId);
+        }
     }
 }

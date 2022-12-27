@@ -26,16 +26,22 @@ public class AddressController {
         return addressService.getAllAddressList();
     }
 
-    @GetMapping("/address/{id}")
+    @GetMapping("/address/user/{id}")
     @Cacheable(value = TextConstants.ADDRESS_CACHE_VALUE, key = "#userId")
-    public Address getUserById(@PathVariable(value = "id") Long userId) throws ResourceNotFoundException {
-        return addressService.getAddressById(userId);
+    public Address getAddressByUserId(@PathVariable(value = "id") String userId) throws ResourceNotFoundException {
+        return addressService.getAddressByUserId(userId);
+    }
+
+    @GetMapping("/address/{id}")
+    @Cacheable(value = TextConstants.ADDRESS_CACHE_VALUE, key = "#addressId")
+    public Address getAddressByAddressId(@PathVariable(value = "id") String addressId) throws ResourceNotFoundException {
+        return addressService.getAddressByAddressId(addressId);
     }
 
     @DeleteMapping("/address/{addressId}/{userId}")
     @CacheEvict(value = TextConstants.ADDRESS_CACHE_VALUE, key = "#userId")
-    public String deleteAddressById(@PathVariable(value = "addressId") Long addressId,
-                                    @PathVariable(value = "userId") Long userId) throws ResourceNotFoundException {
+    public String deleteAddressById(@PathVariable(value = "addressId") String addressId,
+                                    @PathVariable(value = "userId") String userId) throws ResourceNotFoundException {
         return addressService.deleteAddressById(addressId, userId);
     }
 }

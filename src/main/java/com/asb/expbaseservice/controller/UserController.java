@@ -41,7 +41,7 @@ public class UserController {
 
     @GetMapping("/user/{id}")
     @Cacheable(value = "users", key = "#userId")
-    public UserResponse getUserById(@PathVariable(value = "id") Long userId) throws ResourceNotFoundException {
+    public UserResponse getUserById(@PathVariable(value = "id") String userId) throws ResourceNotFoundException {
         UserDto userDto = userService.getUserById(userId);
         UserResponse userRet = new UserResponse();
         BeanUtils.copyProperties(userDto, userRet);
@@ -50,7 +50,7 @@ public class UserController {
 
     @PutMapping("/user/{id}")
     @CachePut(value = "users", key = "#userId")
-    public UserResponse updateUser(@PathVariable(value = "id") Long userId,
+    public UserResponse updateUser(@PathVariable(value = "id") String userId,
                             @RequestBody UserDto userDetails) throws ResourceNotFoundException {
         UserDto userDto = userService.updateUser(userId, userDetails);
         UserResponse userResponse = new UserResponse();
@@ -60,7 +60,7 @@ public class UserController {
 
     @DeleteMapping("/user/{id}")
     @CacheEvict(value = "users", key = "#userId")
-    public Map<String, Boolean> deleteUser(@PathVariable(value = "id") Long userId)
+    public Map<String, Boolean> deleteUser(@PathVariable(value = "id") String userId)
             throws ResourceNotFoundException {
         return userService.deleteUser(userId);
     }

@@ -13,7 +13,7 @@ import java.util.Map;
 
 public interface IUserService {
     List<UserDto> getAllUsers();
-    UserDto getUserById(Long userId) throws ResourceNotFoundException;
-    UserDto updateUser(Long userId, UserDto userDetails) throws ResourceNotFoundException;
-    Map<String, Boolean> deleteUser(Long userId) throws ResourceNotFoundException;
+    UserDto getUserById(String userId) throws ResourceNotFoundException;
+    UserDto updateUser(String userId, UserDto userDetails) throws ResourceNotFoundException;
+    Map<String, Boolean> deleteUser(String userId) throws ResourceNotFoundException;
 }

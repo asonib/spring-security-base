@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface IAddressService {
     List<Address> getAllAddressList();
-    Address getAddressById(Long userId);
-    String deleteAddressById(Long addressId, Long userId) throws ResourceNotFoundException;
+    Address getAddressByUserId(String userId) throws ResourceNotFoundException;
+    String deleteAddressById(String addressId, String userId) throws ResourceNotFoundException;
+    Address getAddressByAddressId(String addressId) throws ResourceNotFoundException;
 }

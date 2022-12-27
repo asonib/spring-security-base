@@ -36,23 +36,40 @@ public class AddressServiceImpl implements IAddressService {
     }
 
     @Override
-    public Address getAddressById(Long userId) {
+    public Address getAddressByUserId(String userId) throws ResourceNotFoundException {
         kafkaProducerUtil.sendStringMessage("INFO :: "+ SERVICE_NAME +" :: getAddressById for Id {"+userId+"} API called on "+new Date());
-        Optional<Users> userAddress = userRepository.findById(userId);
-        return userAddress.get().getAddress();
+        Users userAddress = userRepository.findByUserId(userId);
+        if(userAddress == null){
+            throw new ResourceNotFoundException("Unable find address with user id {"+userId+"}");
+        }
+        return userAddress.getAddress();
     }
 
     @Override
-    public String deleteAddressById(Long addressId, Long userId) throws ResourceNotFoundException {
+    public String deleteAddressById(String addressId, String userId) throws ResourceNotFoundException {
         kafkaProducerUtil.sendStringMessage("INFO :: "+ SERVICE_NAME +" :: deleteAddressById for Id {"+userId+"} API called on "+new Date());
-        Address address = addressRepository.findById(addressId)
-                .orElseThrow(() -> new ResourceNotFoundException("Unable find address with id {"+addressId+"}"));
-        Users users = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Unable find user with id {"+userId+"}"));
+        Address address = addressRepository.findByAddressIdentification(addressId);
+        if(address == null){
+            throw new ResourceNotFoundException("Unable find address with id {"+addressId+"}");
+        }
+        Users users = userRepository.findByUserId(userId);
+        if(users == null){
+            throw new ResourceNotFoundException("Unable find user with id {"+userId+"}");
+        }
         users.setAddress(null);
         userRepository.save(users);
         addressRepository.delete(address);
         return "Address Deleted.";
 
+    }
+
+    @Override
+    public Address getAddressByAddressId(String addressId) throws ResourceNotFoundException {
+        kafkaProducerUtil.sendStringMessage("INFO :: "+ SERVICE_NAME +" :: getAddressById for Id {"+addressId+"} API called on "+new Date());
+        Address userAddress = addressRepository.findByAddressIdentification(addressId);
+        if(userAddress == null){
+            throw new ResourceNotFoundException("Unable find address with address id {"+addressId+"}");
+        }
+        return userAddress;
     }
 }

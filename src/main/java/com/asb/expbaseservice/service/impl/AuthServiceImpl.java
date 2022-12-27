@@ -1,6 +1,7 @@
 package com.asb.expbaseservice.service.impl;
 
 import com.asb.expbaseservice.exception.ResourceNotFoundException;
+import com.asb.expbaseservice.model.Address;
 import com.asb.expbaseservice.model.UserRequest;
 import com.asb.expbaseservice.model.UserResponse;
 import com.asb.expbaseservice.model.Users;
@@ -45,6 +46,8 @@ public class AuthServiceImpl implements IAuthService {
         if(checkUser != null){
             throw new ResourceNotFoundException("User already exists with email {"+ userDto.getEmailId()+"}");
         }
+        Address address = userDto.getAddress();
+        address.setAddressIdentification(utils.generateUserId(10));
         Users users = Users.builder()
                 .userId(utils.generateUserId(30))
                 .address(userDto.getAddress())
